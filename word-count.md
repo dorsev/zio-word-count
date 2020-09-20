@@ -48,10 +48,9 @@ object wordCount extends zio.App {
     val fstream = new FileInputStream(path)
     val br = new BufferedReader(new InputStreamReader(fstream))
     var strLine: String = null
-    //Read File Line By Line
     while ({
       ({ strLine = br.readLine; strLine }) != null
-    }) { // Print the content on the console
+    }) { 
       string += strLine
     }
 
@@ -86,7 +85,7 @@ object wordCount extends zio.App {
           {
             while ({
               ({ strLine = br.readLine; strLine }) != null
-            }) { // Print the content on the console
+            }) { 
               string += strLine
             }
             Task(string)
@@ -103,6 +102,30 @@ object wordCount extends zio.App {
 
 ---
 
+# Zip Right
+
+```scala
+  def readFileAsString(path: String): Task[String] = {
+    var string = ""
+    var strLine: String = null
+
+    Task(new BufferedReader(new InputStreamReader(new FileInputStream(path))))
+      .bracket(inputStream => UIO(println("closing")) *> UIO(inputStream.close)) {
+        br =>
+          {
+            while ({
+              ({ strLine = br.readLine; strLine }) != null
+            }) { 
+              string += strLine
+            }
+            Task(string)
+          }
+      }
+  }
+```
+
+---
+
 # Full code
 
 ```scala
@@ -111,8 +134,23 @@ object wordCount extends zio.App {
   def run(args: List[String]) =
     myAppLogic.exitCode
 
-  def readFileAsString(path: String): Task[String] =
-    ZIO.effect(Source.fromFile(path).getLines.mkString(" "))
+     def readFileAsString(path: String): Task[String] = {
+    var string = ""
+    var strLine: String = null
+
+    Task(new BufferedReader(new InputStreamReader(new FileInputStream(path))))
+      .bracket(inputStream => UIO(println("closing")) *> UIO(inputStream.close)) {
+        br =>
+          {
+            while ({
+              ({ strLine = br.readLine; strLine }) != null
+            }) { 
+              string += strLine
+            }
+            Task(string)
+          }
+      }
+  }
 
   def countWords(str: String): UIO[Int] = UIO(str.split(" ").length)
 

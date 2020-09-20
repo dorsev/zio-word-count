@@ -22,7 +22,7 @@ object wordCount extends zio.App {
     var strLine: String = null
 
     Task(new BufferedReader(new InputStreamReader(new FileInputStream(path))))
-      .bracket(inputStream =>UIO(inputStream.close)) {
+      .bracket(inputStream => UIO(println("closing")) *> UIO(inputStream.close)) {
         br =>
           {
             while ({
