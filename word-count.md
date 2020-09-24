@@ -171,26 +171,61 @@ object wordCount extends zio.App {
 
 ---
 
-# Summary
+# Next step
 
-* Unpure code is wrapped in ZIO.effect
-* Pure values are wrapped in UIO
-
----
-
-# Scheduling & retrying
-
-* error handling
-* Scheduling & retrys
-
----
-
+* Word count on a full directory
 
 ```scala
-ZIO.effectTotal(println(1)).orDie
-ZIO.effectTotal(zio.console.putStrLn("hello world").repeatN(10))
-zio.console.putStrLn("heloo world").repeat(Schedule.forever)
-zio.console.putStrLn("heloo world").repeat(Schedule.recurs(10) andThen Schedule.spaced(1.second))
+def getFolderFiles(path: String): Task[List[String]] =
+    for {
+      file <- ZIO.effect(new File(path))
+    } yield file.listFiles().filter(_.isFile).map(_.getAbsolutePath).toList
 ```
 
 ---
+
+```scala
+  def countPerFile(path: String) =
+    for {
+      contents <- readFileAsString(path)
+      count <- countWords(contents)
+      _ <- putStrLn(s"found ${count} words")
+    } yield count
+
+  def countWords(str: String): UIO[Int] = UIO(str.split(" ").length)
+
+  def readFileAsString(path: String): Task[String] = {
+    var string = ""
+    var strLine: String = null
+
+    Task(new BufferedReader(new InputStreamReader(new FileInputStream(path))))
+      .bracket(inputStream => UIO(println("closing")) *> UIO(inputStream.close)) {
+        br =>
+          {
+            while ({
+              ({ strLine = br.readLine; strLine }) != null
+            }) { // Print the content on the console
+              string += strLine
+            }
+            Task(string)
+          }
+      }
+  }
+```
+
+---
+
+# And then
+
+```scala
+  val myAppLogic =
+    for {
+      _ <- putStrLn(
+        "Hello! What folder path do you want to word count? please enter full folder path")
+      fullPath <- getStrLn
+      files <- getFolderFiles(fullPath)
+      count <- ZIO.collectAll(files.map(countPerFile(_)))
+      _ <- putStrLn(s"found ${count.sum} in all files")
+    } yield count.sum
+
+```
