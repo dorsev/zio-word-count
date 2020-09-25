@@ -302,3 +302,41 @@ def run(args: List[String]) =
 
 # What was the trouble for?
 
+# ZIO test
+
+```scala
+import zio._
+import zio.test.Assertion._
+import zio.test._
+
+object WordCountSpec extends DefaultRunnableSpec {
+  override def spec =
+    suite("WordCountSpec")(
+      testM("count words properly") {
+        for {
+          count <- wordCount.wordCountEnv.countWords("/tmp/twoWords")
+        } yield assert(count)(equalTo(2))
+      }
+    ).provideSomeLayer(wordCount.wordCountEnv.FileRepo.live)
+}
+
+```
+
+---
+
+# Test env
+
+```scala
+
+    val test: Layer[Nothing, FileRepo] = ZLayer.succeed(new Service {
+    def readFileAsString(path: String): Task[String] = {
+      Task(path match {
+        case "/tmp/twoWords"   => "hello world"
+        case "/tmp/threeWords" => "hello dear world"
+        case _                 => "unknown"
+      })
+    }
+  })
+
+ provideSomeLayer(wordCount.wordCountEnv.FileRepo.test)
+```
