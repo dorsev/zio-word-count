@@ -39,7 +39,9 @@ object wordCount extends zio.App {
 
 object wordCountEnv extends zio.App {
   def run(args: List[String]) =
-    myAppLogic.provideSomeLayer(FileRepo.live ++ zio.console.Console.live).exitCode
+    myAppLogic
+      .provideSomeLayer(FileRepo.live ++ zio.console.Console.live)
+      .exitCode
 
   val myAppLogic =
     for {
@@ -50,10 +52,12 @@ object wordCountEnv extends zio.App {
       _ <- putStrLn(result.toString)
     } yield fullPath
 
+  def countWordsInString(str: String): UIO[Int] = UIO(str.split(" ").length)
+
   def countWords(str: String): ZIO[FileRepo, Throwable, Int] =
     for {
       content <- ZIO.accessM[FileRepo](_.get.readFileAsString(str))
-      count <- countWords(content)
+      count <- countWordsInString(content)
     } yield count
 
   import zio.{Has, ZLayer}
@@ -91,7 +95,11 @@ object wordCountEnv extends zio.App {
 
     val test: Layer[Nothing, FileRepo] = ZLayer.succeed(new Service {
       def readFileAsString(path: String): Task[String] = {
-        Task("hello world")
+        Task(path match {
+          case "/tmp/twoWords"   => "hello world"
+          case "/tmp/threeWords" => "hello dear world"
+          case _                 => "unknown"
+        })
       }
     })
   }

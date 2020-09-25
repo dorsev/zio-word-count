@@ -7,8 +7,8 @@ object WordCountSpec extends DefaultRunnableSpec {
     suite("WordCountSpec")(
       testM("count words properly") {
         for {
-          count <- wordCount.wordCountEnv.countWords("/tmp/words")
+          count <- wordCount.wordCountEnv.countWords("/tmp/twoWords")
         } yield assert(count)(equalTo(2))
       }
-    )
+    ).provideSomeLayer(wordCount.wordCountEnv.FileRepo.test)
 }
