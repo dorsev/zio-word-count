@@ -168,7 +168,6 @@ object wordCount extends zio.App {
 
 ```
 
-
 ---
 
 # Next step
@@ -229,3 +228,77 @@ def getFolderFiles(path: String): Task[List[String]] =
     } yield count.sum
 
 ```
+
+
+
+---
+
+# Testability via zio environments. 
+
+```scala
+  import zio.{Has, ZLayer}
+
+  type FileRepo = Has[FileRepo.Service]
+
+  object FileRepo {
+    trait Service {
+      def readFileAsString(path: String): Task[String]
+    }
+  }
+```
+
+---
+
+# Count words again
+
+```scala
+  def countWords(str: String): ZIO[FileRepo, Throwable, Int] =
+    for {
+      content <- ZIO.accessM[FileRepo](_.get.readFileAsString(str))
+      count <- countWords(content)
+    } yield count
+```
+
+---
+
+# Main app
+
+```scala
+def run(args: List[String]) =
+    myAppLogic.provideSomeLayer(FileRepo.live ++ zio.console.Console.live).exitCode
+```
+
+---
+
+# FileRepo Live
+
+```scala
+    val live: Layer[Nothing, FileRepo] = ZLayer.succeed(
+      new Service {
+        def readFileAsString(path: String): Task[String] = {
+          var string = ""
+          var strLine: String = null
+
+          Task(
+            new BufferedReader(
+              new InputStreamReader(new FileInputStream(path))))
+            .bracket(inputStream =>
+              UIO(println("closing")) *> UIO(inputStream.close)) { br =>
+              {
+                while ({
+                  ({ strLine = br.readLine; strLine }) != null
+                }) { // Print the content on the console
+                  string += strLine
+                }
+                Task(string)
+              }
+            }
+        }
+      }
+    )
+```
+
+--- 
+
+# What was the trouble for?
+
