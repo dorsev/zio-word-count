@@ -4,6 +4,25 @@ import zio._
 import zio.console._
 import java.io.{BufferedReader, File, FileInputStream, InputStreamReader}
 
+
+import zio._
+import zio.console._
+import scala.io.Source
+object wordCountv1 extends zio.App {
+  def run(args: List[String]) =
+    myAppLogic.exitCode
+
+  val myAppLogic =
+    for {
+      _ <- putStrLn(
+        "Hello! What path do you want to word count? please enter full path")
+      fullPath <- getStrLn
+    } yield fullPath
+
+  def countWords(str: String):Int = ???
+  def readFileAsString(path: String): String = ???
+}
+
 object wordCount extends zio.App {
   def run(args: List[String]) =
     myAppLogic.exitCode

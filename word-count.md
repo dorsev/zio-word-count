@@ -15,7 +15,7 @@
 import zio._
 import zio.console._
 import scala.io.Source
-object wordCount extends zio.App {
+object wordCountv1 extends zio.App {
    def run(args: List[String]) =
     myAppLogic.exitCode
 
@@ -31,6 +31,14 @@ object wordCount extends zio.App {
 } 
 
 ```
+
+---
+
+# How to model this properly?
+
+* UIO
+* Task
+* ZIO
 
 
 ---
@@ -61,6 +69,10 @@ object wordCount extends zio.App {
 
 
 ---
+
+# DEMO
+
+--- 
 
 # Where's the bug?
 
@@ -126,6 +138,10 @@ object wordCount extends zio.App {
 
 ---
 
+# Demo
+
+---
+
 # Full code
 
 ```scala
@@ -176,9 +192,10 @@ object wordCount extends zio.App {
 
 ```scala
 def getFolderFiles(path: String): Task[List[String]] =
-    for {
-      file <- ZIO.effect(new File(path))
-    } yield file.listFiles().filter(_.isFile).map(_.getAbsolutePath).toList
+  ???
+  
+def countPerFile(path:String):Task[Int] = ???
+
 ```
 
 ---
@@ -229,6 +246,20 @@ def getFolderFiles(path: String): Task[List[String]] =
 
 ```
 
+---
+
+# Par combinators
+
+---
+
+# Recap
+
+* ZIO modeling using UIO, Task
+* Bracket
+* Zip Right
+* collectAll, CollectAllParN combinators
+* ZIO.effect
+* 
 
 
 ---
